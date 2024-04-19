@@ -8,27 +8,19 @@ This Go package provides a flexible and generic implementation of the repository
 
 ## Installation
 
-1. **Clone the repository:**
+1. **Install the package:**
 
    ```bash
-   git clone https://github.com/sepehr-dh99/gorm-public-repository-pattern
+   go get github.com/sepehr-dh99/gorm-public-repository-pattern
    ```
 
-2. **Install dependencies:**
+2. **Set up the database:**
 
-   This project requires Go, [GORM](https://gorm.io/) to be installed. You can install GORM using the following command:
+   Update the database connection details in the `main.go` file or where ever you want. Ensure that you have database accessible.
 
-   bashCopy code
+3. **Build and run the project:**
 
-   `go get -u gorm.io/gorm`
-
-3. **Set up the database:**
-
-   Update the database connection details in the `main.go` file. Ensure that you have database accessible.
-
-4. **Build and run the project:**
-
-   bashCopy code
+   bashCopy code to run your project (in this case main.go)
 
    `go run main.go`
 
@@ -39,7 +31,7 @@ To use this package, import it into your Go project and initialize a repository 
 goCopy code
 
 ```go
-package main
+package publicRepository
 
 import (
 	"fmt"
@@ -47,8 +39,6 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"github.com/sepehr-dh99/gorm-public-repository-pattern/repository"
 )
 
 type User struct {
@@ -67,14 +57,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
-	repository.DB = db
 
-	// Usage example
-    var db *gorm.DB
-	userRepository := repository.NewMainRepository[User](db)
+	migrateErr := db.AutoMigrate(
+		&User{},
+	)
+
+	if migrateErr != nil {
+		log.Fatal(err)
+	}
+
 	// Here User is your model struct
+	userRepository := NewMainRepository[User](db)
 
-	// Example of finding user by ID
+	// Example of finding user by ID and some custom query
 	userID := uint(1)
 	user, err := userRepository.FindById(&userID, func(d *gorm.DB) *gorm.DB {
 		return d.
