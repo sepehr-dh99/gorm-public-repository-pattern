@@ -1,6 +1,6 @@
 ## Go Repository Pattern Package
 
-This repository contains a Go package for implementing a repository pattern to interact with a PostgreSQL database using GORM.
+This repository contains a Go package for implementing a repository pattern to interact with a database using GORM.
 
 ## Introduction
 
@@ -16,16 +16,15 @@ This Go package provides a flexible and generic implementation of the repository
 
 2. **Install dependencies:**
 
-   This project requires Go, [GORM](https://gorm.io/) and Gorm Postgres driver to be installed. You can install GORM and Gorm Postgres driver using the following command:
+   This project requires Go, [GORM](https://gorm.io/) to be installed. You can install GORM using the following command:
 
    bashCopy code
 
    `go get -u gorm.io/gorm`
-   `go get gorm.io/driver/postgres`
 
 3. **Set up the database:**
 
-   Update the database connection details in the `main.go` file. Ensure that you have a PostgreSQL database accessible.
+   Update the database connection details in the `main.go` file. Ensure that you have database accessible.
 
 4. **Build and run the project:**
 
@@ -71,7 +70,8 @@ func main() {
 	repository.DB = db
 
 	// Usage example
-	userRepository := repository.NewMainRepository[User]()
+    var db *gorm.DB
+	userRepository := repository.NewMainRepository[User](db)
 	// Here User is your model struct
 
 	// Example of finding user by ID

@@ -6,8 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
 type Pagination struct {
 	Page  int
 	Limit int
@@ -30,8 +28,8 @@ type MainRepository[T any] struct {
 	db *gorm.DB
 }
 
-func NewMainRepository[T any]() IMainRepository[T] {
-	return &MainRepository[T]{db: DB}
+func NewMainRepository[T any](db *gorm.DB) IMainRepository[T] {
+	return &MainRepository[T]{db}
 }
 
 func (repo *MainRepository[T]) FindById(id *uint, queryFuncs ...QueryBuilder) (*T, error) {
