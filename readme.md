@@ -69,7 +69,7 @@ func main() {
 	// Here User is your model struct
 	userRepository := NewMainRepository[User](db)
 
-	// Example of finding user by ID and some custom query
+	// Example of finding user by ID
 	userID := uint(1)
 	user, err := userRepository.FindById(&userID)
 
@@ -79,7 +79,7 @@ func main() {
 
 	fmt.Println("User found:", user)
 
-	// Example of finding all users
+	// Example of finding all users and some custom query
 	users, err := userRepository.FindAll(func(d *gorm.DB) *gorm.DB {
 		return d.
 			Where("status = ?", 1).
