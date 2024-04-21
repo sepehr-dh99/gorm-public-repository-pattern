@@ -71,11 +71,7 @@ func main() {
 
 	// Example of finding user by ID and some custom query
 	userID := uint(1)
-	user, err := userRepository.FindById(&userID, func(d *gorm.DB) *gorm.DB {
-		return d.
-			Where("status = ?", 1).
-			Order("created_at DESC")
-	})
+	user, err := userRepository.FindById(&userID)
 
 	if err != nil {
 		log.Fatalf("failed to find user: %v", err)
@@ -84,7 +80,11 @@ func main() {
 	fmt.Println("User found:", user)
 
 	// Example of finding all users
-	users, err := userRepository.FindAll()
+	users, err := userRepository.FindAll(func(d *gorm.DB) *gorm.DB {
+		return d.
+			Where("status = ?", 1).
+			Order("created_at DESC")
+	})
 	if err != nil {
 		log.Fatalf("failed to find users: %v", err)
 	}
