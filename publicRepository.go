@@ -21,7 +21,7 @@ type IMainRepository[T any] interface {
 	Delete(m *T, queryFuncs ...QueryBuilder) error
 	FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (*[]T, int64, error)
 	Count(queryFuncs ...QueryBuilder) (*int64, error)
-	Exist(queryFuncs ...QueryBuilder) (*bool, error)
+	Exist(queryFuncs ...QueryBuilder) (bool, error)
 }
 
 type MainRepository[T any] struct {
@@ -111,16 +111,16 @@ func (repo *MainRepository[T]) Count(queryFuncs ...QueryBuilder) (*int64, error)
 	return &count, nil
 }
 
-func (repo *MainRepository[T]) Exist(queryFuncs ...QueryBuilder) (*bool, error) {
+func (repo *MainRepository[T]) Exist(queryFuncs ...QueryBuilder) (bool, error) {
 	q := repo.applyQueryBuilders(repo.db, queryFuncs)
 
 	var count int64
 	if err := q.Count(&count).Error; err != nil {
-		return nil, err
+		return false, err
 	}
 
 	exists := count > 0
-	return &exists, nil
+	return exists, nil
 }
 
 func (repo *MainRepository[T]) applyQueryBuilders(q *gorm.DB, queryFuncs []QueryBuilder) *gorm.DB {
