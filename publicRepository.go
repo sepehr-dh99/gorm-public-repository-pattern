@@ -22,7 +22,7 @@ type IMainRepository[T any] interface {
 	FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (*[]T, int64, error)
 	Count(queryFuncs ...QueryBuilder) (*int64, error)
 	Exist(queryFuncs ...QueryBuilder) (bool, error)
-	QueryBuilders(q *gorm.DB, queryFuncs []QueryBuilder) *gorm.DB
+	QueryBuilder(queryFuncs []QueryBuilder) *gorm.DB
 }
 
 type MainRepository[T any] struct {
@@ -35,7 +35,7 @@ func NewMainRepository[T any](db *gorm.DB) IMainRepository[T] {
 
 func (repo *MainRepository[T]) FindById(id *uint, queryFuncs ...QueryBuilder) (*T, error) {
 	var result T
-	q := repo.QueryBuilders(repo.db.Model(&result), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&result), queryFuncs)
 
 	err := q.First(&result, id).Error
 	if err != nil {
@@ -48,7 +48,7 @@ func (repo *MainRepository[T]) FindById(id *uint, queryFuncs ...QueryBuilder) (*
 func (repo *MainRepository[T]) FindAll(queryFuncs ...QueryBuilder) (*[]T, error) {
 	var results []T
 	var model T
-	q := repo.QueryBuilders(repo.db.Model(&model), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 
 	err := q.Find(&results).Error
 	if err != nil {
@@ -62,7 +62,7 @@ func (repo *MainRepository[T]) FindAllPaginated(pagination *Pagination, queryFun
 	var results []T
 	var model T
 	var count int64
-	q := repo.QueryBuilders(repo.db.Model(&model), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 
 	offset := (pagination.Page - 1) * pagination.Limit
 
@@ -77,7 +77,7 @@ func (repo *MainRepository[T]) FindAllPaginated(pagination *Pagination, queryFun
 
 func (repo *MainRepository[T]) Create(m *T, queryFuncs ...QueryBuilder) (*T, error) {
 	var model T
-	q := repo.QueryBuilders(repo.db.Model(&model), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 
 	err := q.Create(m).Error
 	if err != nil {
@@ -88,7 +88,7 @@ func (repo *MainRepository[T]) Create(m *T, queryFuncs ...QueryBuilder) (*T, err
 
 func (repo *MainRepository[T]) Update(m *T, queryFuncs ...QueryBuilder) (*T, error) {
 	var model T
-	q := repo.QueryBuilders(repo.db.Model(&model), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 
 	err := q.Save(m).Error
 	if err != nil {
@@ -100,7 +100,7 @@ func (repo *MainRepository[T]) Update(m *T, queryFuncs ...QueryBuilder) (*T, err
 
 func (repo *MainRepository[T]) Delete(m *T, queryFuncs ...QueryBuilder) error {
 	var model T
-	q := repo.QueryBuilders(repo.db.Model(&model), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 
 	return q.Delete(m).Error
 }
@@ -108,7 +108,7 @@ func (repo *MainRepository[T]) Delete(m *T, queryFuncs ...QueryBuilder) error {
 func (repo *MainRepository[T]) Count(queryFuncs ...QueryBuilder) (*int64, error) {
 	var count int64
 	var model T
-	q := repo.QueryBuilders(repo.db.Model(&model), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 
 	err := q.Count(&count).Error
 	if err != nil {
@@ -120,7 +120,7 @@ func (repo *MainRepository[T]) Count(queryFuncs ...QueryBuilder) (*int64, error)
 
 func (repo *MainRepository[T]) Exist(queryFuncs ...QueryBuilder) (bool, error) {
 	var model T
-	q := repo.QueryBuilders(repo.db.Model(&model), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 
 	var count int64
 	if err := q.Count(&count).Error; err != nil {
@@ -131,7 +131,12 @@ func (repo *MainRepository[T]) Exist(queryFuncs ...QueryBuilder) (bool, error) {
 	return exists, nil
 }
 
-func (repo *MainRepository[T]) QueryBuilders(q *gorm.DB, queryFuncs []QueryBuilder) *gorm.DB {
+func (repo *MainRepository[T]) QueryBuilder(queryFuncs []QueryBuilder) *gorm.DB {
+	var model T
+	return repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
+}
+
+func (repo *MainRepository[T]) applyQueryBuilders(q *gorm.DB, queryFuncs []QueryBuilder) *gorm.DB {
 	for _, f := range queryFuncs {
 		q = f(q)
 	}
