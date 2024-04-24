@@ -1,4 +1,4 @@
-## Golang Repository Pattern Public Implementation Package
+## Go Repository Pattern Public Implementation Package
 
 This repository contains a Go package for implementing a repository pattern to interact with a database using GORM.
 

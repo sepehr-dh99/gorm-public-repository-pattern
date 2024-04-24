@@ -22,7 +22,7 @@ type IMainRepository[T any] interface {
 	FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (*[]T, int64, error)
 	Count(queryFuncs ...QueryBuilder) (*int64, error)
 	Exist(queryFuncs ...QueryBuilder) (bool, error)
-	QueryBuilder(queryFuncs []QueryBuilder) *gorm.DB
+	QueryBuilder(queryFuncs ...QueryBuilder) *gorm.DB
 }
 
 type MainRepository[T any] struct {
@@ -131,7 +131,7 @@ func (repo *MainRepository[T]) Exist(queryFuncs ...QueryBuilder) (bool, error) {
 	return exists, nil
 }
 
-func (repo *MainRepository[T]) QueryBuilder(queryFuncs []QueryBuilder) *gorm.DB {
+func (repo *MainRepository[T]) QueryBuilder(queryFuncs ...QueryBuilder) *gorm.DB {
 	var model T
 	return repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 }
