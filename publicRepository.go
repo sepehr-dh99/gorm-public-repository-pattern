@@ -17,7 +17,7 @@ type IMainRepository[T any] interface {
 	FindById(id *uint, queryFuncs ...QueryBuilder) (*T, error)
 	FindAll(queryFuncs ...QueryBuilder) (*[]T, error)
 	Create(m *T, queryFuncs ...QueryBuilder) (*T, error)
-	Update(m *T, queryFuncs ...QueryBuilder) (*T, error)
+	Update(m *T, mID *uint, queryFuncs ...QueryBuilder) (*T, error)
 	Delete(m *T, queryFuncs ...QueryBuilder) error
 	FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (*[]T, int64, error)
 	Count(queryFuncs ...QueryBuilder) (*int64, error)
@@ -86,9 +86,9 @@ func (repo *MainRepository[T]) Create(m *T, queryFuncs ...QueryBuilder) (*T, err
 	return m, nil
 }
 
-func (repo *MainRepository[T]) Update(m *T, queryFuncs ...QueryBuilder) (*T, error) {
+func (repo *MainRepository[T]) Update(m *T, mID *uint, queryFuncs ...QueryBuilder) (*T, error) {
 	var model T
-	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs).Where("id = ?", *mID)
 
 	err := q.Save(m).Error
 	if err != nil {
