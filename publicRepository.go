@@ -23,6 +23,7 @@ type IMainRepository[T any] interface {
 	Count(queryFuncs ...QueryBuilder) (*int64, error)
 	Exist(queryFuncs ...QueryBuilder) (bool, error)
 	QueryBuilder(queryFuncs ...QueryBuilder) *gorm.DB
+	WithTrx(trxHandle *gorm.DB) *MainRepository[T]
 }
 
 type MainRepository[T any] struct {
@@ -141,4 +142,13 @@ func (repo *MainRepository[T]) applyQueryBuilders(q *gorm.DB, queryFuncs []Query
 		q = f(q)
 	}
 	return q
+}
+
+func (repo *MainRepository[T]) WithTrx(trxHandle *gorm.DB) *MainRepository[T] {
+	if trxHandle == nil {
+		return repo
+	}
+
+	repo.db = trxHandle
+	return repo
 }
