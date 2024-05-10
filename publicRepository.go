@@ -23,7 +23,7 @@ type IMainRepository[T any] interface {
 	Count(queryFuncs ...QueryBuilder) (*int64, error)
 	Exist(queryFuncs ...QueryBuilder) (bool, error)
 	QueryBuilder(queryFuncs ...QueryBuilder) *gorm.DB
-	WithTrx(trxHandle *gorm.DB) *MainRepository[T]
+	WithTransaction(txFunc func(repo IMainRepository[T]) error) error
 }
 
 type MainRepository[T any] struct {
@@ -144,11 +144,21 @@ func (repo *MainRepository[T]) applyQueryBuilders(q *gorm.DB, queryFuncs []Query
 	return q
 }
 
-func (repo *MainRepository[T]) WithTrx(trxHandle *gorm.DB) *MainRepository[T] {
-	if trxHandle == nil {
-		return repo
+func (repo *MainRepository[T]) WithTransaction(txFunc func(repo IMainRepository[T]) error) error {
+	tx := repo.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	txRepo := NewMainRepository[T](tx)
+
+	if err := txFunc(txRepo); err != nil {
+		tx.Rollback()
+		return err
 	}
 
-	repo.db = trxHandle
-	return repo
+	return nil
 }
