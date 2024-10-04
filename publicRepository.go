@@ -17,6 +17,7 @@ type IMainRepository[T any] interface {
 	FindById(id *uint, queryFuncs ...QueryBuilder) (*T, error)
 	FindAll(queryFuncs ...QueryBuilder) (*[]T, error)
 	Create(m *T, queryFuncs ...QueryBuilder) (*T, error)
+	CreateMany(models *[]T, queryFuncs ...QueryBuilder) (*[]T, error)
 	Update(m *T, mID *uint, queryFuncs ...QueryBuilder) (*T, error)
 	Delete(m *T, queryFuncs ...QueryBuilder) error
 	FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (*[]T, int64, error)
@@ -161,4 +162,16 @@ func (repo *MainRepository[T]) WithTransaction(txFunc func(repo IMainRepository[
 	}
 
 	return nil
+}
+
+func (repo *MainRepository[T]) CreateMany(models *[]T, queryFuncs ...QueryBuilder) (*[]T, error) {
+	var model T
+	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
+
+	err := q.Create(models).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return models, nil
 }
