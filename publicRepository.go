@@ -20,7 +20,7 @@ type IMainRepository[T any] interface {
 	CreateMany(models *[]T, queryFuncs ...QueryBuilder) (*[]T, error)
 	Update(m *T, mID *uint, queryFuncs ...QueryBuilder) (*T, error)
 	Delete(m *T, queryFuncs ...QueryBuilder) error
-	FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (*[]T, int64, error)
+	FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (data *[]T, resultCount int64, totalPages int64, qErr error)
 	Count(queryFuncs ...QueryBuilder) (*int64, error)
 	Exist(queryFuncs ...QueryBuilder) (bool, error)
 	QueryBuilder(queryFuncs ...QueryBuilder) *gorm.DB
@@ -60,7 +60,7 @@ func (repo *MainRepository[T]) FindAll(queryFuncs ...QueryBuilder) (*[]T, error)
 	return &results, nil
 }
 
-func (repo *MainRepository[T]) FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (*[]T, int64, error) {
+func (repo *MainRepository[T]) FindAllPaginated(pagination *Pagination, queryFuncs ...QueryBuilder) (data *[]T, resultCount int64, totalPages int64, qErr error) {
 	var results []T
 	var model T
 	var count int64
@@ -70,11 +70,11 @@ func (repo *MainRepository[T]) FindAllPaginated(pagination *Pagination, queryFun
 
 	err := q.Count(&count).Limit(pagination.Limit).Offset(offset).Find(&results).Error
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
 
 	maxPage := int64(math.Ceil(float64(count) / float64(pagination.Limit)))
-	return &results, maxPage, nil
+	return &results, count, maxPage, nil
 }
 
 func (repo *MainRepository[T]) Create(m *T, queryFuncs ...QueryBuilder) (*T, error) {
