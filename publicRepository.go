@@ -124,13 +124,16 @@ func (repo *MainRepository[T]) Exist(queryFuncs ...QueryBuilder) (bool, error) {
 	var model T
 	q := repo.applyQueryBuilders(repo.db.Model(&model), queryFuncs)
 
-	var count int64
-	if err := q.Count(&count).Error; err != nil {
-		return false, err
+	// No model hydration or association queries are needed for existence.
+	q = q.Session(&gorm.Session{Initialized: true})
+	q.Statement.Preloads = nil
+	var rows []map[string]interface{}
+	q = q.Select("1").Limit(1).Find(&rows)
+	if q.Error != nil {
+		return false, q.Error
 	}
 
-	exists := count > 0
-	return exists, nil
+	return q.RowsAffected > 0, nil
 }
 
 func (repo *MainRepository[T]) QueryBuilder(queryFuncs ...QueryBuilder) *gorm.DB {
