@@ -146,22 +146,9 @@ func (repo *MainRepository[T]) applyQueryBuilders(q *gorm.DB, queryFuncs []Query
 }
 
 func (repo *MainRepository[T]) WithTransaction(txFunc func(repo IMainRepository[T]) error) error {
-	tx := repo.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			panic(r)
-		}
-	}()
-
-	txRepo := NewMainRepository[T](tx)
-
-	if err := txFunc(txRepo); err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	return nil
+	return repo.db.Transaction(func(tx *gorm.DB) error {
+		return txFunc(NewMainRepository[T](tx))
+	})
 }
 
 func (repo *MainRepository[T]) CreateMany(models *[]T, queryFuncs ...QueryBuilder) (*[]T, error) {
